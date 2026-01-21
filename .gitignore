@@ -1,0 +1,18 @@
+# 1. Ignore everything by default
+*
+
+# 2. Allow descending into directories
+!*/
+
+# 3. Whitelist specific file types
+!*.py
+!*.cpp
+!*.cu
+!*.gitignore
+!README.md
+
+# 4. Explicitly block environment/cache folders 
+venv/
+.venv/
+env/
+__pycache__/
