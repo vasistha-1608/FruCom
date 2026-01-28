@@ -10,6 +10,8 @@
 !*.cu
 !*.json
 !*.txt
+!*.h
+!*.hpp
 !CMakeLists.txt
 !*.gitignore
 !README.md
