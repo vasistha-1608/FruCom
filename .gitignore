@@ -21,3 +21,8 @@ env/
 __pycache__/
 build/
 .vscode/
+
+# Ignore model weights
+models/
+*.safetensors
+*.bin
