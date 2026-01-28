@@ -8,11 +8,16 @@
 !*.py
 !*.cpp
 !*.cu
+!*.json
+!*.txt
+!CMakeLists.txt
 !*.gitignore
 !README.md
 
-# 4. Explicitly block environment/cache folders 
+# 4. Explicitly block environment/cache/build folders 
 venv/
 .venv/
 env/
 __pycache__/
+build/
+.vscode/
