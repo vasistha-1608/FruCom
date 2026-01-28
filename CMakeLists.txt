@@ -16,7 +16,7 @@ file(GLOB_RECURSE CUDA_SOURCES "src/kernels/*.cu")
 file(GLOB_RECURSE CPP_SOURCES "src/memory/*.cpp" "src/ops/*.cpp" "src/model/*.cpp" "src/loader/*.cpp" "src/common/*.cpp")
 
 
-add_library(core_engine SHARED ${CUDA_SOURCES} ${CPP_SOURCES})
+add_library(core_engine STATIC ${CUDA_SOURCES} ${CPP_SOURCES})
 
 add_executable(chat_cli apps/chat.cpp)
 target_link_libraries(chat_cli PRIVATE core_engine)
