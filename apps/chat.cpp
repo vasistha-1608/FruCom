@@ -20,8 +20,23 @@ int main() {
     }
 
     if (loader.load_header(model_path)) {
-        std::cout << "Success! Header loaded." << std::endl;
-        loader.debug_print_info();
+       std::cout << "Success! File Mapped." << std::endl;
+
+        
+        std::string test_tensor = "model.embed_tokens.weight";
+        void* data = loader.get_tensor_data(test_tensor);
+
+        if (data) {
+            uint16_t* weights = static_cast<uint16_t*>(data);
+            std::cout << "First 5 weights of " << test_tensor << ": ";
+            for(int i=0; i<5; i++) {
+                std::cout << weights[i] << " ";
+            }
+            std::cout << std::endl;
+        } else {
+            std::cout << "Could not find tensor: " << test_tensor << std::endl;
+            loader.debug_print_info(); 
+        }
     } else {
         std::cerr << "Failed to load header." << std::endl;
         return -1;
