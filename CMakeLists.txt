@@ -6,13 +6,18 @@ set(CMAKE_CUDA_ARCHITECTURES "86;89")
 
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 --use_fast_math")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math")
+
 
 
 include_directories(include)
 
 
 file(GLOB_RECURSE CUDA_SOURCES "src/kernels/*.cu")
+set(CUDA_SOURCES
+    ${KERNEL_SOURCES}
+    src/core/tensor.cu         
+)
 file(GLOB_RECURSE CPP_SOURCES "src/memory/*.cpp" "src/ops/*.cpp" "src/model/*.cpp" "src/loader/*.cpp" "src/common/*.cpp")
 
 
