@@ -105,7 +105,14 @@ namespace loader {
     
     }
 
-    void* SafeTensorsLoader::get_tensor_data(const std::string& name) {
+    TensorInfo SafeTensorsLoader::get_tensor_info(const std::string& name) const {
+        if (metadata_.find(name) != metadata_.end()) {
+            return metadata_.at(name);
+        }
+        return {}; 
+    }
+
+    void* SafeTensorsLoader::get_tensor_data(const std::string& name)  {
         if (metadata_.find(name) == metadata_.end()) return nullptr;
         
         // Calculate the exact address in RAM

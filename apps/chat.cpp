@@ -1,6 +1,8 @@
 #include "core/loader/safetensors.h"
+#include "core/tensor.h"
 #include <iostream>
-#include <filesystem> 
+#include <vector>
+#include <filesystem>
 
 namespace fs = std::filesystem;
 
@@ -40,6 +42,37 @@ int main() {
     } else {
         std::cerr << "Failed to load header." << std::endl;
         return -1;
+    }
+
+    std::string tensor_name = "model.embed_tokens.weight";
+    
+    auto info = loader.get_tensor_info(tensor_name);
+    void* cpu_data = loader.get_tensor_data(tensor_name);
+
+    if (cpu_data) {
+        std::cout << "Found '" << tensor_name << "' on CPU." << std::endl;
+        std::cout << "Shape: [" << info.shape[0] << ", " << info.shape[1] << "]" << std::endl;
+
+        
+        core::Tensor gpu_tensor(info.shape, tensor_name);
+
+        
+        std::cout << "Uploading to GPU..." << std::endl;
+        gpu_tensor.to_device(cpu_data, info.data_size);
+
+        
+        std::vector<uint16_t> verification_buffer(5); 
+        gpu_tensor.to_host(verification_buffer.data(), 5 * sizeof(uint16_t));
+
+        std::cout << "GPU Round-Trip Verified! First 5 values: ";
+        for (auto v : verification_buffer) {
+            std::cout << v << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "SUCCESS: Data successfully moved to VRAM." << std::endl;
+
+    } else {
+        std::cerr << "Tensor not found! Did you download the right model?" << std::endl;
     }
 
     return 0;
