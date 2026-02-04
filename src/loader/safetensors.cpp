@@ -53,6 +53,7 @@ namespace loader {
             CloseHandle(h_map_);
             CloseHandle(h_file_);
             return false;
+            
         }
 #else
         // LINUX Implementation (Standard mmap)

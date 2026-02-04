@@ -16,7 +16,8 @@ include_directories(include)
 file(GLOB_RECURSE CUDA_SOURCES "src/kernels/*.cu")
 set(CUDA_SOURCES
     ${KERNEL_SOURCES}
-    src/core/tensor.cu         
+    src/core/tensor.cu 
+    src/kernels/rmsnorm.cu        
 )
 file(GLOB_RECURSE CPP_SOURCES "src/memory/*.cpp" "src/ops/*.cpp" "src/model/*.cpp" "src/loader/*.cpp" "src/common/*.cpp")
 

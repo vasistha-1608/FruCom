@@ -11,12 +11,20 @@ namespace core {
         return count;
     }
 
-    Tensor::Tensor(const std::vector<int64_t>& shape, const std::string& name) 
-        : shape_(shape), name_(name) {
+    Tensor::Tensor(const std::vector<int64_t>& shape, DType dtype,const std::string& name) 
+        : shape_(shape),dtype_(dtype) , name_(name) {
         
+    
        
         size_t num_elements = get_element_count(shape);
-        size_in_bytes_ = num_elements * 2; 
+      size_t element_size = 4; // Default FP32
+        if (dtype == DType::FLOAT16) {
+            element_size = 2;
+        }
+
+        size_in_bytes_ = num_elements * element_size; 
+
+        
 
         
         cudaError_t err = cudaMalloc(&d_data_, size_in_bytes_);

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <filesystem>
+#include "core/ops/ops.h"
 
 namespace fs = std::filesystem;
 
@@ -15,65 +16,47 @@ int main() {
     std::string model_path = "../models/model-00001-of-00002.safetensors";
     
   
-    if (!fs::exists(model_path)) {
-        std::cerr << "CRITICAL ERROR: Model file not found at: " << model_path << std::endl;
-        std::cerr << "Please ensure 'models' folder is in the project root." << std::endl;
+    if (!loader.load_header(model_path)) return -1;
+
+    std::string weight_name = "model.layers.0.input_layernorm.weight";
+    auto info = loader.get_tensor_info(weight_name);
+    void* cpu_weights = loader.get_tensor_data(weight_name);
+
+    if (!cpu_weights) {
+        std::cerr << "Could not find " << weight_name << std::endl;
         return -1;
     }
 
-    if (loader.load_header(model_path)) {
-       std::cout << "Success! File Mapped." << std::endl;
+    int hidden_dim = info.shape[0]; 
+    int batch_size = 1;
 
-        
-        std::string test_tensor = "model.embed_tokens.weight";
-        void* data = loader.get_tensor_data(test_tensor);
+    std::cout << "Loaded Weights: " << weight_name << " [" << hidden_dim << "]" << std::endl;
 
-        if (data) {
-            uint16_t* weights = static_cast<uint16_t*>(data);
-            std::cout << "First 5 weights of " << test_tensor << ": ";
-            for(int i=0; i<5; i++) {
-                std::cout << weights[i] << " ";
-            }
-            std::cout << std::endl;
-        } else {
-            std::cout << "Could not find tensor: " << test_tensor << std::endl;
-            loader.debug_print_info(); 
-        }
-    } else {
-        std::cerr << "Failed to load header." << std::endl;
-        return -1;
-    }
-
-    std::string tensor_name = "model.embed_tokens.weight";
     
-    auto info = loader.get_tensor_info(tensor_name);
-    void* cpu_data = loader.get_tensor_data(tensor_name);
+    core::Tensor weight_tensor({hidden_dim}, core::DType::FLOAT16, "ln_weights");
+    core::Tensor input_tensor({batch_size, hidden_dim}, core::DType::FLOAT16, "input");
+    core::Tensor output_tensor({batch_size, hidden_dim}, core::DType::FLOAT16, "output");
 
-    if (cpu_data) {
-        std::cout << "Found '" << tensor_name << "' on CPU." << std::endl;
-        std::cout << "Shape: [" << info.shape[0] << ", " << info.shape[1] << "]" << std::endl;
 
-        
-        core::Tensor gpu_tensor(info.shape, tensor_name);
+    weight_tensor.to_device(cpu_weights, info.data_size);
 
-        
-        std::cout << "Uploading to GPU..." << std::endl;
-        gpu_tensor.to_device(cpu_data, info.data_size);
+    std::vector<uint16_t> host_input(hidden_dim, 0x3C00); 
+    input_tensor.to_device(host_input.data(), hidden_dim * 2);
 
-        
-        std::vector<uint16_t> verification_buffer(5); 
-        gpu_tensor.to_host(verification_buffer.data(), 5 * sizeof(uint16_t));
+ 
+    std::cout << "Running FP16 RMSNorm..." << std::endl;
+    core::ops::rms_norm(output_tensor, input_tensor, weight_tensor);
 
-        std::cout << "GPU Round-Trip Verified! First 5 values: ";
-        for (auto v : verification_buffer) {
-            std::cout << v << " ";
-        }
-        std::cout << std::endl;
-        std::cout << "SUCCESS: Data successfully moved to VRAM." << std::endl;
+ 
+    std::vector<uint16_t> result(5);
+    output_tensor.to_host(result.data(), 5 * 2);
 
-    } else {
-        std::cerr << "Tensor not found! Did you download the right model?" << std::endl;
+    std::cout << "Result (First 5 raw hex values): ";
+    for (auto v : result) {
+        std::cout << std::hex << v << " ";
     }
+    std::cout << std::dec << std::endl;
 
     return 0;
+
 }
